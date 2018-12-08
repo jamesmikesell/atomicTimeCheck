@@ -11,7 +11,7 @@ export class TimeDisplayComponent implements OnInit, OnDestroy {
 
     private localOffset: number = undefined;
     private timerSubscription: Subscription;
-    private systemTimeCheckSubscription: Subscription;
+    private periodicUpdate: Subscription;
 
     realTime: Date;
     capturedTimes: Date[] = [undefined, undefined, undefined];
@@ -20,11 +20,15 @@ export class TimeDisplayComponent implements OnInit, OnDestroy {
 
     ngOnInit(): void {
         this.calculateOffset();
+
+        this.periodicUpdate = timer(30 * 60 * 1000).subscribe(() => {
+            this.calculateOffset();
+        });
     }
 
     ngOnDestroy(): void {
         this.cancelTimer();
-        this.cancelSystemTimeCheck();
+        this.cancelPeriodicUpdate();
     }
 
 
@@ -49,9 +53,9 @@ export class TimeDisplayComponent implements OnInit, OnDestroy {
             this.timerSubscription.unsubscribe();
     }
 
-    private cancelSystemTimeCheck(): void {
-        if (this.systemTimeCheckSubscription && !this.systemTimeCheckSubscription.closed)
-            this.systemTimeCheckSubscription.unsubscribe();
+    private cancelPeriodicUpdate(): void {
+        if (this.periodicUpdate && !this.periodicUpdate.closed)
+            this.periodicUpdate.unsubscribe();
     }
 
     private async calculateOffset(): Promise<void> {

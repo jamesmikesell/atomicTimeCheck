@@ -1,19 +1,23 @@
-<div class="time-display">
+<div class="main-display">
 
-  <ng-container *ngIf="!realTime">
-    Checking time.
-  </ng-container>
+  <div class="time-display">
 
-  {{realTime | date : 'h:mm:ss a'}}
+    <ng-container *ngIf="!realTime">
+      Checking time.
+    </ng-container>
+
+    {{realTime | date : 'h:mm:ss a'}}
+    <br>
+
+  </div>
+
+  <div class="bold">Captured times:</div>
+  <div *ngFor="let date of capturedTimes">
+    {{date | date : 'h:mm:ss.SS a'}} <br>
+  </div>
+
   <br>
 
+  <button (pointerdown)="captureTime()" class="capture-button">Record</button>
+
 </div>
-
-<div class="bold">Captured times:</div>
-<div *ngFor="let date of capturedTimes">
-  {{date | date : 'h:mm:ss.SS a'}} <br>
-</div>
-
-<br>
-
-<button (pointerdown)="captureTime()" class="capture-button">Record</button>
