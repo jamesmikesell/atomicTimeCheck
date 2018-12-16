@@ -1,5 +1,5 @@
 # Try The App
-An [online version](https://jamesmikesell.github.io/atomicTimeCheck/)  of the app is availible for use on both mobile and desktop use.
+An [online version](https://jamesmikesell.github.io/atomicTimeCheck/)  of the app is available for use on both mobile and desktop use.
 
 
 # Atomic Clock Check
