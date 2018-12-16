@@ -17,7 +17,7 @@
       "sizes": "96x96"
     }
   ],
-  "start_url": "index.html",
+  "start_url": "/atomicTimeCheck/index.html",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#ffffff"
