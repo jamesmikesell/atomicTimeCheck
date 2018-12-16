@@ -1,0 +1,24 @@
+{
+  "short_name": "Atomic Time",
+  "name": "Atomic Time Check",
+  "icons": [{
+      "src": "icons8-physics-32.png",
+      "type": "image/png",
+      "sizes": "32x32"
+    },
+    {
+      "src": "icons8-physics-64.png",
+      "type": "image/png",
+      "sizes": "64x64"
+    },
+    {
+      "src": "icons8-physics-96.png",
+      "type": "image/png",
+      "sizes": "96x96"
+    }
+  ],
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff"
+}
