@@ -40,3 +40,10 @@
 .main-display {
   max-width: 800px;
 }
+
+#bug {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  font-size: .5em;
+}

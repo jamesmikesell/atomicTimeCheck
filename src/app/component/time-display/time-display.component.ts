@@ -45,7 +45,7 @@ export class TimeDisplayComponent implements OnInit, OnDestroy {
     }
 
     private getRealTime(): Date {
-        return new Date(Date.now() + this.localOffset);
+        return new Date(window.performance.now() + this.localOffset);
     }
 
     private cancelTimer(): void {
@@ -67,9 +67,9 @@ export class TimeDisplayComponent implements OnInit, OnDestroy {
         let attempts = 1;
         let successfulAttempts = 0;
         while (attempts <= 5 && (serverCold || successfulAttempts < 2)) {
-            callStart = Date.now();
+            callStart = window.performance.now();
             let response = <ServerTime>await this.getServerResponse();
-            callEnd = Date.now();
+            callEnd = window.performance.now();
 
             serverTime = new Date(response.date).getTime();
 
