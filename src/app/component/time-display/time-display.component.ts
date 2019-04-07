@@ -10,8 +10,10 @@ import { Subscription, timer } from 'rxjs';
 export class TimeDisplayComponent implements OnInit, OnDestroy {
 
     private localOffset: number = undefined;
-    private timerSubscription: Subscription;
-    private periodicUpdate: Subscription;
+    private uiUpdateTimer: Subscription;
+    private periodicResyncTimer: Subscription;
+    private performanceTimeOffsetAtSync: number;
+
 
     realTime: Date;
     capturedTimes: Date[] = [undefined, undefined, undefined];
@@ -20,23 +22,32 @@ export class TimeDisplayComponent implements OnInit, OnDestroy {
 
     ngOnInit(): void {
         this.calculateOffset();
+    }
 
-        this.periodicUpdate = timer(30 * 60 * 1000).subscribe(() => {
+    ngOnDestroy(): void {
+        this.cancelUpUpdater();
+        this.cancelPeriodicResync();
+    }
+
+    private scheduleResync(): void {
+        this.cancelPeriodicResync();
+        this.periodicResyncTimer = timer(30 * 60 * 1000).subscribe(() => {
             this.calculateOffset();
         });
     }
 
-    ngOnDestroy(): void {
-        this.cancelTimer();
-        this.cancelPeriodicUpdate();
-    }
-
-
     private scheduleScreenUpdate(delay: number): void {
-        this.cancelTimer();
+        this.cancelUpUpdater();
 
-        this.timerSubscription = timer(delay).subscribe(() => {
+        this.uiUpdateTimer = timer(delay).subscribe(() => {
             if (this.localOffset !== undefined) {
+                // This will get triggered on either a system clock change, or if the device sleeps / wakes
+                let deltaWithPerformanceSync = Math.abs((Date.now() - performance.now()) - this.performanceTimeOffsetAtSync);
+                if (deltaWithPerformanceSync > 50) {
+                    this.calculateOffset();
+                    return;
+                }
+
                 this.realTime = this.getRealTime();
 
                 this.scheduleScreenUpdate(1000 - this.realTime.getMilliseconds());
@@ -45,20 +56,26 @@ export class TimeDisplayComponent implements OnInit, OnDestroy {
     }
 
     private getRealTime(): Date {
-        return new Date(window.performance.now() + this.localOffset);
+        return new Date(performance.now() + this.localOffset);
     }
 
-    private cancelTimer(): void {
-        if (this.timerSubscription && !this.timerSubscription.closed)
-            this.timerSubscription.unsubscribe();
+    private cancelUpUpdater(): void {
+        if (this.uiUpdateTimer && !this.uiUpdateTimer.closed)
+            this.uiUpdateTimer.unsubscribe();
     }
 
-    private cancelPeriodicUpdate(): void {
-        if (this.periodicUpdate && !this.periodicUpdate.closed)
-            this.periodicUpdate.unsubscribe();
+    private cancelPeriodicResync(): void {
+        if (this.periodicResyncTimer && !this.periodicResyncTimer.closed)
+            this.periodicResyncTimer.unsubscribe();
     }
 
     private async calculateOffset(): Promise<void> {
+        this.cancelUpUpdater();
+        this.cancelPeriodicResync();
+        this.localOffset = undefined;
+        this.performanceTimeOffsetAtSync = undefined;
+        this.realTime = undefined;
+
         let serverTime: number;
         let callStart: number;
         let callEnd: number;
@@ -67,9 +84,9 @@ export class TimeDisplayComponent implements OnInit, OnDestroy {
         let attempts = 1;
         let successfulAttempts = 0;
         while (attempts <= 5 && (serverCold || successfulAttempts < 2)) {
-            callStart = window.performance.now();
+            callStart = performance.now();
             let response = <ServerTime>await this.getServerResponse();
-            callEnd = window.performance.now();
+            callEnd = performance.now();
 
             serverTime = new Date(response.date).getTime();
 
@@ -84,7 +101,11 @@ export class TimeDisplayComponent implements OnInit, OnDestroy {
         if (!serverCold) {
             let halfFlightTime = ((callEnd - callStart) / 2);
             this.localOffset = (serverTime + halfFlightTime) - callEnd;
+
+            this.performanceTimeOffsetAtSync = Date.now() - performance.now();
+
             this.scheduleScreenUpdate(0);
+            this.scheduleResync();
         }
     }
 
